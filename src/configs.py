@@ -1,0 +1,15 @@
+# Temp Control Dial
+DIAL_CLK_PIN = 29
+DIAL_DT_PIN = 28
+DIAL_SW_PIN = 24
+DIAL_RES = 1 # Percent per click
+
+# Status LEDs
+GREEN_LED_PIN = 26
+RED_LED_PIN = 27
+STEADY_STATE_THRESH = 1, 1 # Volts, Amps
+
+# System Temp Limits
+MAX_ZVS_TEMP = 85
+MAX_ZVS_SUPPLY_TEMP = 85
+MAX_COOLANT_TEMP = 60
