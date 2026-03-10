@@ -1,7 +1,7 @@
 import struct
 import asyncio
 from collections import deque
-from machine import Pin
+from machine import Pin, ADC
 from canbus import Can, CanError, CanMsg, CanMsgFlag, CAN_SPEED
 from configs import *
 
@@ -10,16 +10,24 @@ class ZVSController:
     DEFAULT_ID = 0x0607FF83
     READ_ID = 0x06000783
     
-    def __init__(self, cache_len=10, steady_thresh=STEADY_STATE_THRESH):
+    def __init__(
+        self,
+        cache_len=10,
+        steady_thresh=STEADY_STATE_THRESH,
+        temp_pin=ZVS_TEMP_PIN,
+    ):
         self._steady_thresh = steady_thresh
         self._state = {
             "enabled" : False,
             "v_out": deque([0.0], maxlen=cache_len),
             "i_out": deque([0.0], maxlen=cache_len),
             "i_lim": 0.0,
-            "supply_temp": 0.0,
             "v_in": 0.0,
+            "supply_temp": 0.0,
         }
+        
+        assert 26 <= temp_pin <= 29, "Temp pin must be ADC-capable GPIO26-29"
+        self._temp_pin = ADC(Pin(temp_pin))
         
         self._can = Can(spics=19) # CAN_CS -> GPIO19
         self._irq = Pin(22, Pin.IN) # CAN_INTERRUPT -> GPIO22
@@ -45,9 +53,13 @@ class ZVSController:
         return self._state.get("i_lim", 0.0)
     
     @property
+    def temp(self):
+        return self._temp_pin.read() * (3.3 / 4095) * 100
+    
+    @property
     def supply_temp(self):
         return self._state.get("supply_temp", 0.0)
-    
+
     @property
     def steady(self):
         v_hist = self._state.get("v_out", [0.0])
@@ -66,7 +78,8 @@ class ZVSController:
     async def _update_state(self):
         while True:
             await asyncio.sleep(0.1)
-            self._send_msg(self.READ_ID, [0x00, 0xF0, 0x00, 0x80, 0x46, 0xA5, 0x34, 0x00]) # Read all properties
+            read_all = [0x00, 0xF0, 0x00, 0x80, 0x46, 0xA5, 0x34, 0x00]
+            self._send_msg(self.READ_ID, read_all)
             new_properties = {}
             while len(new_properties) < 5:
                 await self._recv_event.wait()
@@ -87,14 +100,17 @@ class ZVSController:
                             case 0x05: new_properties["v_in"] = val
             self._state.update(new_properties)
     
-    def toggle_pwr(self, enable):
-        if enable == self._state.get("enabled", False): return
-        else: self._state["enabled"] = bool(enable)
-        if not enable:
-            data = [0x03, 0xF0, 0x00, 0x32, 0x00, 0x00, 0x00, 0x00]
-        else:
-            b = self._float_to_bytearray(0)
-            data = [0x03, 0xF0, 0x00, 0x32, 0x00, 0x01, 0x00, 0x00, *b]
+    def enable(self):
+        if self.enabled: return
+        else: self._state["enabled"] = True
+        b = self._float_to_bytearray(0)
+        data = [0x03, 0xF0, 0x00, 0x32, 0x00, 0x01, 0x00, 0x00, *b]
+        self._send_msg(self.DEFAULT_ID, data)
+    
+    def disable(self):
+        if not self.enabled: return
+        else: self._state["enabled"] = False
+        data = [0x03, 0xF0, 0x00, 0x32, 0x00, 0x00, 0x00, 0x00]
         self._send_msg(self.DEFAULT_ID, data)
 
     def set_current_limit(self, pct):

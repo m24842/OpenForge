@@ -15,8 +15,8 @@ class UI:
     ):
         self.status = self.IDLE
         
-        self._green_led = Pin(green_led_pin, Pin.OUT)
-        self._red_led = Pin(red_led_pin, Pin.OUT)
+        self._green_led = Pin(green_led_pin, Pin.OUT, value=0)
+        self._red_led = Pin(red_led_pin, Pin.OUT, value=0)
         self._flash_timer = Timer(0)
         self._flash_timer.init(period=100, mode=Timer.PERIODIC, callback=self._flash_handler)
         self._flash_counter = 0
