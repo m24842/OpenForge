@@ -1,26 +1,45 @@
+try:
+    from typing import List, Tuple
+except ImportError:
+    pass
+
 import struct
 import asyncio
-from collections import deque
 from machine import Pin, ADC
-from canbus import Can, CanError, CanMsg, CanMsgFlag, CAN_SPEED
+from collections import deque
 from configs import *
+from canbus import Can, CanError, CanMsg, CanMsgFlag, CAN_SPEED, MASK, RXF
 
 class ZVSController:
+    """
+    Controls the ZVS power and monitors ZVS power supply properties.
     
-    DEFAULT_ID = 0x0607FF83
-    READ_ID = 0x06000783
+    Power supply CAN commands:
+        - https://github.com/PurpleAlien/R48_Rectifier (MIT License)
+        - https://endless-sphere.com/sphere/threads/emerson-vertiv-r48-series-can-programming.114785/post-1747656
+    MCU CAN setup:
+        - https://github.com/adafruit/Adafruit_CircuitPython_MCP2515 (MIT License)
+    """
+    
+    DEFAULT_ID = const(0x0607FF83)
+    READ_ID = const(0x06000783)
     
     def __init__(
         self,
-        cache_len=10,
-        steady_thresh=STEADY_STATE_THRESH,
-        temp_pin=ZVS_TEMP_PIN,
+        cache_len: int = 10,
+        steady_thresh: Tuple[float, float] = STEADY_STATE_THRESH,
+        temp_pin: int = ZVS_TEMP_PIN,
+        spi_idx: int = CAN_SPI,
+        sck_pin: int = CAN_SPI_SCK,
+        mosi_pin: int = CAN_SPI_MOSI,
+        miso_pin: int = CAN_SPI_MISO,
+        cs_pin: int = CAN_CS,
     ):
         self._steady_thresh = steady_thresh
         self._state = {
             "enabled" : False,
-            "v_out": deque([0.0], maxlen=cache_len),
-            "i_out": deque([0.0], maxlen=cache_len),
+            "v_out": deque([0.0], cache_len),
+            "i_out": deque([0.0], cache_len),
             "i_lim": 0.0,
             "v_in": 0.0,
             "supply_temp": 0.0,
@@ -28,94 +47,127 @@ class ZVSController:
         
         assert 26 <= temp_pin <= 29, "Temp pin must be ADC-capable GPIO26-29"
         self._temp_pin = ADC(Pin(temp_pin))
+
+        # Initialize CAN communication with ZVS power supply
+        self._can = Can(
+            spi=spi_idx,
+            sck=Pin(sck_pin),
+            mosi=Pin(mosi_pin),
+            miso=Pin(miso_pin),
+            cs=Pin(cs_pin)
+        )
+        assert self._can.begin(bitrate=CAN_SPEED.CAN_125KBPS, mode="config") == CanError.ERROR_OK
+        # Set up CAN filters
+        for m in [MASK.MASK0, MASK.MASK1]:
+            self._can.setFilterMask(m, True, 0x1FFFFFFF)
+        for f in [RXF.RXF0, RXF.RXF1, RXF.RXF2, RXF.RXF3, RXF.RXF4, RXF.RXF5]:
+            self._can.setFilter(f, True, 0x60F8003) # All property messages use arbitration ID: 0x60F8003
+        self._can.setNormalMode()
         
-        self._can = Can(spics=19) # CAN_CS -> GPIO19
-        self._irq = Pin(22, Pin.IN) # CAN_INTERRUPT -> GPIO22
-        self._recv_event = asyncio.Event()
-        self._irq.irq(trigger=Pin.IRQ_FALLING, handler=lambda pin: self._recv_event.set())
-        asyncio.create_task(self._update_state())
-        assert self._can.begin(bitrate=CAN_SPEED.CAN_125KBPS) == CanError.ERROR_OK
+        # Default state
+        self.disable()
+        self.set_current_limit(0.0)
+        self.set_voltage(58.5)
     
     @property
-    def enabled(self):
+    def enabled(self) -> bool:
         return self._state.get("enabled", False)
     
     @property
-    def v_out(self):
+    def v_out(self) -> float:
         return self._state.get("v_out", [0.0])[-1]
     
     @property
-    def i_out(self):
+    def i_out(self) -> float:
         return self._state.get("i_out", [0.0])[-1]
     
     @property
-    def i_lim(self):
+    def i_lim(self) -> float:
         return self._state.get("i_lim", 0.0)
     
     @property
-    def temp(self):
-        return self._temp_pin.read() * (3.3 / 4095) * 100
+    def temp(self) -> float:
+        return self._temp_pin.read_u16() * (3.3 / 4095) * 100
     
     @property
-    def supply_temp(self):
+    def supply_temp(self) -> float:
         return self._state.get("supply_temp", 0.0)
 
     @property
-    def steady(self):
+    def steady(self) -> bool:
         v_hist = self._state.get("v_out", [0.0])
         i_hist = self._state.get("i_out", [0.0])
         v_range = max(v_hist) - min(v_hist)
         i_range = max(i_hist) - min(i_hist)
         return v_range < self._steady_thresh[0] and i_range < self._steady_thresh[1]
     
-    def _float_to_bytearray(self, f):
-        return bytearray(struct.pack('<f', f))
+    def _float_to_bytearray(self, f: float) -> bytearray:
+        return bytearray(struct.pack('>f', f))
     
-    def _send_msg(self, id, data):
+    def _send_msg(self, id: int, data: List[int]) -> bool:
         res = self._can.send(CanMsg(can_id=id, data=data, flags=CanMsgFlag.EFF))
         return res == CanError.ERROR_OK
     
-    async def _update_state(self):
-        while True:
-            await asyncio.sleep(0.1)
-            read_all = [0x00, 0xF0, 0x00, 0x80, 0x46, 0xA5, 0x34, 0x00]
-            self._send_msg(self.READ_ID, read_all)
-            new_properties = {}
-            while len(new_properties) < 5:
-                await self._recv_event.wait()
-                self._recv_event.clear()
-                if self._can.checkReceive():
-                    res, msg = self._can.recv()
-                    if all([
-                        res == CanError.ERROR_OK,
-                        msg.dlc >= 8,
-                        msg.data[0] == 0x41
-                    ]):
-                        val = struct.unpack('>f', msg.data[4:8])[0]
-                        match msg.data[3]:
-                            case 0x01: new_properties["v_out"].append(val)
-                            case 0x02: new_properties["i_out"].append(val)
-                            case 0x03: new_properties["i_lim"] = val
-                            case 0x04: new_properties["supply_temp"] = val
-                            case 0x05: new_properties["v_in"] = val
-            self._state.update(new_properties)
+    async def start_update(self) -> None:
+        asyncio.create_task(self._update_state())
     
-    def enable(self):
+    async def _update_state(self) -> None:
+        """
+        Periodically request updated properties from ZVS power supply.
+        """
+        pids = {
+            0x01: "v_out",
+            0x02: "i_out",
+            0x03: "i_lim",
+            0x04: "supply_temp",
+            0x05: "v_in",
+        }
+        while True:
+            await asyncio.sleep(1.0)
+            # Request updates for each properties
+            for id in pids.keys():
+                res = self._send_msg(self.READ_ID, [0x01, 0xF0, 0x00, id, 0x00, 0x00, 0x00, 0x00])
+                if not res: continue
+                while self._can.checkReceive():
+                    try:
+                        res, msg = self._can.recv()
+                        if res != CanError.ERROR_OK or len(msg.data) < 8 or msg.data[0] != 0x41: continue
+                        p = pids[msg.data[3]]
+                        pval = struct.unpack('>f', msg.data[4:8])[0]
+                        if p == "v_out": self._state[p].append(pval)
+                        elif p == "i_out": self._state[p].append(pval)
+                        elif p == "i_lim": self._state[p] = pval
+                        elif p == "supply_temp": self._state[p] = pval
+                        elif p == "v_in": self._state[p] = pval
+                    except: pass
+
+    def enable(self) -> None:
         if self.enabled: return
         else: self._state["enabled"] = True
-        b = self._float_to_bytearray(0)
-        data = [0x03, 0xF0, 0x00, 0x32, 0x00, 0x01, 0x00, 0x00, *b]
+        data = [0x03, 0xF0, 0x00, 0x30, 0x00, 0x00, 0x00, 0x00]
         self._send_msg(self.DEFAULT_ID, data)
     
-    def disable(self):
+    def disable(self) -> None:
         if not self.enabled: return
         else: self._state["enabled"] = False
-        data = [0x03, 0xF0, 0x00, 0x32, 0x00, 0x00, 0x00, 0x00]
+        data = [0x03, 0xF0, 0x00, 0x30, 0x00, 0x01, 0x00, 0x00]
         self._send_msg(self.DEFAULT_ID, data)
 
-    def set_current_limit(self, pct):
+    def set_current_limit(self, pct: float) -> None:
         prange = (0.1, 1.21)
-        translated_pct = int(pct * (prange[1] - prange[0]) / prange[0])
+        translated_pct = pct * (prange[1] - prange[0]) + prange[0]
         b = self._float_to_bytearray(translated_pct)
-        data = [0x03, 0xF0, 0x00, 0x22, *b]
-        self._send_msg(self.DEFAULT_ID, data)
+        # 0x22 for temporary limit, 0x19 for permanent limit
+        # Sending both commands back-to-back sets the limit immediately rather than after a 30s delay
+        for fixed in [0x22, 0x19]:
+            data = [0x03, 0xF0, 0x00, fixed] + list(b)
+            self._send_msg(self.DEFAULT_ID, data)
+
+    def set_voltage(self, v: float) -> None:
+        # Voltage range: 41.0V - 58.5V
+        b = self._float_to_bytearray(v)
+        # 0x21 for temporary voltage, 0x24 for permanent voltage
+        # Sending both commands back-to-back sets the voltage immediately rather than after a 30s delay
+        for fixed in [0x21, 0x24]:
+            data = [0x03, 0xF0, 0x00, fixed] + list(b)
+            self._send_msg(self.DEFAULT_ID, data)

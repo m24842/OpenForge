@@ -3,7 +3,6 @@ try:
 except ImportError:
     pass
 
-import sys
 import time
 import collections
 
@@ -68,10 +67,8 @@ from .can import (
     CANFrame,
 )
 
-try:
-    from pyb import Pin
-except ImportError:
-    from machine import Pin
+from machine import Pin
+from ..spi.spi import SPI
 
 
 TXBnREGS = collections.namedtuple("TXBnREGS", "CTRL SIDH DATA")
@@ -101,8 +98,8 @@ RXB = [
 
 
 class CAN:
-    def __init__(self, SPI: Any) -> None:
-        self.SPI = SPI  # type: Any
+    def __init__(self, SPI: SPI) -> None:
+        self.SPI = SPI
         self.mcp2515_rx_index = 0
 
     def reset(self) -> int:
@@ -110,7 +107,7 @@ class CAN:
         self.SPI.transfer(INSTRUCTION.INSTRUCTION_RESET)
         self.SPI.end()
 
-        time.sleep_ms(10)  # type: ignore
+        time.sleep_ms(10)
 
         zeros = bytearray(14)
         self.setRegisters(REGISTER.MCP_TXB0CTRL, zeros)
@@ -157,7 +154,7 @@ class CAN:
                 return result
 
         return ERROR.ERROR_OK
-
+    
     def readRegister(self, reg: int) -> int:
         self.SPI.start()
         self.SPI.transfer(INSTRUCTION.INSTRUCTION_READ)
@@ -365,7 +362,7 @@ class CAN:
 
         data.extend(bytearray(1 + frame.dlc))
         data[MCP_DLC] = mcp_dlc
-        data[MCP_DATA : MCP_DATA + frame.dlc] = frame.data
+        data[MCP_DATA : MCP_DATA + frame.dlc] = bytearray(frame.data)
 
         self.setRegisters(txbuf.SIDH, data)
 
@@ -373,6 +370,14 @@ class CAN:
             txbuf.CTRL, TXBnCTRL.TXB_TXREQ, TXBnCTRL.TXB_TXREQ, spifastend=True
         )
 
+        for _ in range(100):
+            ctrl = self.readRegister(txbuf.CTRL)
+            if not (ctrl & TXBnCTRL.TXB_TXREQ):
+                break
+            time.sleep_ms(1)
+        else:
+            return ERROR.ERROR_FAILTX
+        
         ctrl = self.readRegister(txbuf.CTRL)
         if ctrl & (TXBnCTRL.TXB_ABTF | TXBnCTRL.TXB_MLOA | TXBnCTRL.TXB_TXERR):
             return ERROR.ERROR_FAILTX

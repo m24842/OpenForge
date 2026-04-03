@@ -1,18 +1,35 @@
-# Temp Control Dial
-DIAL_CLK_PIN = 14
-DIAL_DT_PIN = 15
-DIAL_SW_PIN = 8
-DIAL_RES = 1 # Percent per click
-
-# Status LEDs
+######################
+# ======= UI ======= #
+######################
 GREEN_LED_PIN = 24
 RED_LED_PIN = 25
+DIAL_PIN = 28
+SWITCH_PIN = 14
+DIAL_ALPHA = 0.1
 STEADY_STATE_THRESH = 1, 1 # Volts, Amps
 
-# System Temp Control
-COOLING_RELAY_PIN = 1
-COOLING_TEMP_PIN = 26
+######################
+# ====== ZVS ======= #
+######################
+CAN_SPI = 1
+CAN_SPI_SCK = 14
+CAN_SPI_MOSI = 15
+CAN_SPI_MISO = 8
+CAN_CS = 19 # CAN_CS -> GPIO19
 ZVS_TEMP_PIN = 27
+
+######################
+# ==== Cooling ===== #
+######################
+COOLING_RELAY_PIN = 1
+COOLING_TEMP_SPI = 0
+COOLING_TEMP_SCK = 2
+COOLING_TEMP_MISO = 4
+COOLING_TEMP_CS = 5
+
+######################
+# ==== Control ===== #
+######################
 MAX_ZVS_TEMP = 85 # Celsius
 MAX_ZVS_SUPPLY_TEMP = 85 # Celsius
 MAX_COOLANT_TEMP = 60 # Celsius

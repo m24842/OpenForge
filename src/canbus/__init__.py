@@ -1,6 +1,9 @@
-from .CAN import CAN_SPEED
-from .CAN import CAN_1 as Can
-from .CAN import CanError as CanError
-
-from .CAN import CanMsg as CanMsg
-from .CAN import CanMsgFlag as CanMsgFlag
+from .CAN import (
+    CAN_SPEED,
+    CanError,
+    CanMsg,
+    CanMsgFlag,
+    MASK,
+    RXF
+)
+from .CAN import CAN_Wrapper as Can, SPI

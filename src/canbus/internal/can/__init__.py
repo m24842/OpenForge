@@ -174,7 +174,7 @@ class CAN_SPEED:
     CAN_5KBPS = 1
     CAN_10KBPS = 2
     CAN_20KBPS = 3
-    CAN_31K25BPS = 4
+    CAN_31KBPS = 4
     CAN_33KBPS = 5
     CAN_40KBPS = 6
     CAN_50KBPS = 7
@@ -442,7 +442,7 @@ CAN_CFGS = {
             MCP_8MHz_20kBPS_CFG2,
             MCP_8MHz_20kBPS_CFG3,
         ],
-        CAN_SPEED.CAN_31K25BPS: [
+        CAN_SPEED.CAN_31KBPS: [
             MCP_8MHz_31k25BPS_CFG1,
             MCP_8MHz_31k25BPS_CFG2,
             MCP_8MHz_31k25BPS_CFG3,
