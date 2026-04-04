@@ -35,7 +35,6 @@ class CoolingController:
         raw = (buf[0] << 8) | buf[1]
         if raw & 0x0001: return -1
         temp = ((raw >> 3) & 0x0FFF) * self.MAX6675_RESOLUTION
-        print("coolant temp", temp)
         return temp
 
     def enable(self) -> None:

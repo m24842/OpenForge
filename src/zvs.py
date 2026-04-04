@@ -90,7 +90,6 @@ class ZVSController:
         # LM19 voltage to temperature conversion
         v = self._temp_pin.read_u16() * (3.3 / 65535)
         temp = -1481.96 + (2.1962e6 + (1.8639 - v) / 3.88e-6)**0.5
-        print("zvs temp", temp)
         return temp
     
     @property
