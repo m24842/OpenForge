@@ -87,7 +87,11 @@ class ZVSController:
     
     @property
     def temp(self) -> float:
-        return self._temp_pin.read_u16() * (3.3 / 4095) * 100
+        # LM19 voltage to temperature conversion
+        v = self._temp_pin.read_u16() * (3.3 / 65535)
+        temp = -1481.96 + (2.1962e6 + (1.8639 - v) / 3.88e-6)**0.5
+        print("zvs temp", temp)
+        return temp
     
     @property
     def supply_temp(self) -> float:
@@ -99,7 +103,7 @@ class ZVSController:
         i_hist = self._state.get("i_out", [0.0])
         v_range = max(v_hist) - min(v_hist)
         i_range = max(i_hist) - min(i_hist)
-        return v_range < self._steady_thresh[0] and i_range < self._steady_thresh[1]
+        return v_range < self._steady_thresh[0]# and i_range < self._steady_thresh[1]
     
     def _float_to_bytearray(self, f: float) -> bytearray:
         return bytearray(struct.pack('>f', f))
@@ -140,6 +144,7 @@ class ZVSController:
                         elif p == "supply_temp": self._state[p] = pval
                         elif p == "v_in": self._state[p] = pval
                     except: pass
+            print("vout", self._state["v_out"][-1], "iout", self._state["i_out"][-1], "i_lim", self._state["i_lim"], "supply_temp", self._state["supply_temp"], "v_in", self._state["v_in"])
 
     def enable(self) -> None:
         if self.enabled: return

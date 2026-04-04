@@ -6,6 +6,9 @@ class CoolingController:
     """
     Controls the cooling system activation and monitors coolant temperature.
     """
+    
+    MAX6675_RESOLUTION = 0.25
+    
     def __init__(
         self,
         relay_pin: int = COOLING_RELAY_PIN,
@@ -20,17 +23,20 @@ class CoolingController:
             mosi=None,
             miso=Pin(temp_miso),
             cs=Pin(temp_cs),
-            # baudrate=1000000,
+            baudrate=1000000,
         )
         self._relay_pin = Pin(relay_pin, Pin.OUT, value=0)
 
     @property
     def temp(self) -> float:
         self._temp_spi.start()
-        raw = self._temp_spi.transfer(read=True)
+        buf = self._temp_spi.transfer(transfer_len=2, read=True, as_bytes=True)
         self._temp_spi.end()
-        if raw & 0x4: return 0
-        return (raw >> 3) * 0.25
+        raw = (buf[0] << 8) | buf[1]
+        if raw & 0x0001: return -1
+        temp = ((raw >> 3) & 0x0FFF) * self.MAX6675_RESOLUTION
+        print("coolant temp", temp)
+        return temp
 
     def enable(self) -> None:
         self._relay_pin.value(1)
