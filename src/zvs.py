@@ -66,6 +66,8 @@ class ZVSController:
         
         # Default state
         self.disable()
+        self.disable_walk_in()
+        self.fan_speed_auto()
         self.set_current_limit(0.0)
         self.set_voltage(58.5)
     
@@ -98,6 +100,7 @@ class ZVSController:
 
     @property
     def steady(self) -> bool:
+        # Current data ommitted due to noise
         v_hist = self._state.get("v_out", [0.0])
         i_hist = self._state.get("i_out", [0.0])
         v_range = max(v_hist) - min(v_hist)
@@ -111,13 +114,11 @@ class ZVSController:
         res = self._can.send(CanMsg(can_id=id, data=data, flags=CanMsgFlag.EFF))
         return res == CanError.ERROR_OK
     
-    async def start_update(self) -> None:
-        asyncio.create_task(self._update_state())
+    def _receive_msg(self) -> Tuple[bool, CanMsg]:
+        res, msg = self._can.recv()
+        return res == CanError.ERROR_OK, msg
     
-    async def _update_state(self) -> None:
-        """
-        Periodically request updated properties from ZVS power supply.
-        """
+    def _get_properties(self) -> dict:
         pids = {
             0x01: "v_out",
             0x02: "i_out",
@@ -125,36 +126,51 @@ class ZVSController:
             0x04: "supply_temp",
             0x05: "v_in",
         }
+        # Request updates for each property
+        for id in pids.keys():
+            res = self._send_msg(self.READ_ID, [0x01, 0xF0, 0x00, id, 0x00, 0x00, 0x00, 0x00])
+            if not res: continue
+            while self._can.checkReceive():
+                try:
+                    res, msg = self._receive_msg()
+                    if not res or len(msg.data) < 8 or msg.data[0] != 0x41: continue
+                    p = pids[msg.data[3]]
+                    pval = struct.unpack('>f', msg.data[4:8])[0]
+                    if p == "v_out": self._state[p].append(pval)
+                    elif p == "i_out": self._state[p].append(pval)
+                    elif p == "i_lim": self._state[p] = pval
+                    elif p == "supply_temp": self._state[p] = pval
+                    elif p == "v_in": self._state[p] = pval
+                except: pass
+        return self._state
+    
+    async def start_update(self) -> None:
+        asyncio.create_task(self._update_state())
+    
+    async def _update_state(self) -> None:
+        """
+        Periodically request updated properties from ZVS power supply.
+        """
         while True:
             await asyncio.sleep(1.0)
-            # Request updates for each properties
-            for id in pids.keys():
-                res = self._send_msg(self.READ_ID, [0x01, 0xF0, 0x00, id, 0x00, 0x00, 0x00, 0x00])
-                if not res: continue
-                while self._can.checkReceive():
-                    try:
-                        res, msg = self._can.recv()
-                        if res != CanError.ERROR_OK or len(msg.data) < 8 or msg.data[0] != 0x41: continue
-                        p = pids[msg.data[3]]
-                        pval = struct.unpack('>f', msg.data[4:8])[0]
-                        if p == "v_out": self._state[p].append(pval)
-                        elif p == "i_out": self._state[p].append(pval)
-                        elif p == "i_lim": self._state[p] = pval
-                        elif p == "supply_temp": self._state[p] = pval
-                        elif p == "v_in": self._state[p] = pval
-                    except: pass
-            print("vout", self._state["v_out"][-1], "iout", self._state["i_out"][-1], "i_lim", self._state["i_lim"], "supply_temp", self._state["supply_temp"], "v_in", self._state["v_in"])
+            self._get_properties()
 
     def enable(self) -> None:
-        if self.enabled: return
-        else: self._state["enabled"] = True
+        self._state["enabled"] = True
         data = [0x03, 0xF0, 0x00, 0x30, 0x00, 0x00, 0x00, 0x00]
         self._send_msg(self.DEFAULT_ID, data)
     
     def disable(self) -> None:
-        if not self.enabled: return
-        else: self._state["enabled"] = False
+        self._state["enabled"] = False
         data = [0x03, 0xF0, 0x00, 0x30, 0x00, 0x01, 0x00, 0x00]
+        self._send_msg(self.DEFAULT_ID, data)
+
+    def disable_walk_in(self) -> None:
+        data = [0x03, 0xF0, 0x00, 0x32, 0x00, 0x00, 0x00, 0x00]
+        self._send_msg(self.DEFAULT_ID, data)
+
+    def fan_speed_auto(self) -> None:
+        data = [0x03, 0xF0, 0x00, 0x33, 0x00, 0x00, 0x00, 0x00]
         self._send_msg(self.DEFAULT_ID, data)
 
     def set_current_limit(self, pct: float) -> None:

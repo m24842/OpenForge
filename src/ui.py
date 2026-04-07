@@ -29,7 +29,7 @@ class UI:
         self._flash_counter = 0
         
         # Power dial potentiometer
-        self.dial_value = 0
+        self._dial_value = 0
         self._dial_alpha = dial_alpha
         assert 26 <= dial_pin <= 29, "Dial pin must be ADC-capable GPIO26-29"
         self._dial = ADC(Pin(dial_pin))
@@ -46,11 +46,14 @@ class UI:
     def enable_zvs(self):
         return self._switch_state
     
-    def _dial_handler(self, t: Timer) -> None:
+    @property
+    def zvs_power_level(self):
         if self._switch_state:
-            self.dial_value = self._dial_alpha * round(self._dial.read_u16() / 65535, 2) + (1 - self._dial_alpha) * self.dial_value
-        else:
-            self.dial_value = 0
+            return self._dial_value
+        return 0
+    
+    def _dial_handler(self, t: Timer) -> None:
+        self._dial_value = self._dial_alpha * round(self._dial.read_u16() / 65535, 2) + (1 - self._dial_alpha) * self._dial_value
     
     def _switch_handler(self, pin: Pin) -> None:
         

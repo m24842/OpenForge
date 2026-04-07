@@ -1,5 +1,5 @@
 try:
-    from typing import Optional
+    from typing import Optional, overload
 except ImportError:
     pass
 

@@ -45,7 +45,7 @@ class SystemController:
             prev_pct = 0
             while True:
                 await asyncio.sleep(0.1)
-                pct = self._ui.dial_value
+                pct = self._ui.zvs_power_level
                 if pct == prev_pct: continue # Avoid redundant commands to ZVS power supply
                 prev_pct = pct
                 
