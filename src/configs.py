@@ -11,7 +11,7 @@ STEADY_STATE_THRESH = 1, 1 # Volts, Amps
 ######################
 # ====== ZVS ======= #
 ######################
-CAN_SPI = 1
+CAN_SPI = 1 # Do NOT change
 CAN_SPI_SCK = 14
 CAN_SPI_MOSI = 15
 CAN_SPI_MISO = 8
@@ -22,7 +22,7 @@ ZVS_TEMP_PIN = 26
 # ==== Cooling ===== #
 ######################
 COOLING_RELAY_PIN = 1
-COOLING_TEMP_SPI = 0
+COOLING_TEMP_SPI = 0 # Do NOT change
 COOLING_TEMP_SCK = 2
 COOLING_TEMP_MISO = 0
 COOLING_TEMP_CS = 5
