@@ -5,7 +5,7 @@
 <h3 align="center">GT Senior Design Project Spring 2026</h3>
 
 ## Overview
-OpenForge is an open-sourced, low cost, hobbyist-level 
+OpenForge is an open-source, low cost, hobbyist-level 
 induction furnace created to reduce the cost barrier of entry 
 for metal working and rapid prototyping.
 
