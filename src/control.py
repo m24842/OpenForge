@@ -31,7 +31,7 @@ class SystemController:
         Enable cooling system when ZVS is enabled or coolant temp exceeds max threshold.
         """
         while True:
-            await asyncio.sleep(0.1)
+            await asyncio.sleep(0.5)
             if self._zvs.enabled or self._cooling.temp > self._max_coolant_temp:
                 self._cooling.enable()
             else:

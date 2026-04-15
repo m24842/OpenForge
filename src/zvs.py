@@ -100,12 +100,11 @@ class ZVSController:
 
     @property
     def steady(self) -> bool:
-        # Current data ommitted due to noise
         v_hist = self._state.get("v_out", [0.0])
         i_hist = self._state.get("i_out", [0.0])
         v_range = max(v_hist) - min(v_hist)
         i_range = max(i_hist) - min(i_hist)
-        return v_range < self._steady_thresh[0]# and i_range < self._steady_thresh[1]
+        return v_range < self._steady_thresh[0] and i_range < self._steady_thresh[1]
     
     def _float_to_bytearray(self, f: float) -> bytearray:
         return bytearray(struct.pack('>f', f))
@@ -154,6 +153,7 @@ class ZVSController:
         while True:
             await asyncio.sleep(1.0)
             self._get_properties()
+            print("vout", self._state["v_out"][-1], "iout", self._state["i_out"][-1], "i_lim", self._state["i_lim"], "supply_temp", self._state["supply_temp"], "v_in", self._state["v_in"])
 
     def enable(self) -> None:
         self._state["enabled"] = True
