@@ -149,6 +149,6 @@ Additionally, the system controller is responsible for updating the furnace stat
 ### Components
 |Name|Suggested Part|
 |:---|-------------:|
-|Aluminum sheet||
+|Aluminum sheet|[link](https://www.onlinemetals.com/en/buy/aluminum/0-063-aluminum-sheet-5052-h32/pid/7128) *24" X 48"|
 |Door hinges|-|
-|Mounting hardware|-|
+|Fasteners|-|
