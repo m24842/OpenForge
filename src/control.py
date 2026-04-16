@@ -12,13 +12,13 @@ class SystemController:
     def __init__(
         self,
         max_zvs_temp: float = MAX_ZVS_TEMP,
-        max_zvs_supply_temp: float = MAX_ZVS_SUPPLY_TEMP,
+        max_zvs_psu_temp: float = MAX_ZVS_PSU_TEMP,
         max_coolant_temp: float = MAX_COOLANT_TEMP,
     ) -> None:
         self._cooling_task = None
         self._heating_task = None
         self._max_zvs_temp = max_zvs_temp
-        self._max_zvs_supply_temp = max_zvs_supply_temp
+        self._max_zvs_psu_temp = max_zvs_psu_temp
         self._max_coolant_temp = max_coolant_temp
         
         # Initialize all subsystems
@@ -73,7 +73,7 @@ class SystemController:
             await asyncio.sleep(0.1)
             stop = any([
                 self._zvs.temp > self._max_zvs_temp, # ZVS over-temp
-                self._zvs.supply_temp > self._max_zvs_supply_temp, # ZVS supply over-temp
+                self._zvs.supply_temp > self._max_zvs_psu_temp, # ZVS supply over-temp
                 self._cooling.temp > self._max_coolant_temp, # Coolant over-temp
             ])
             if stop and not self._heating_task.done():

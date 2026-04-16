@@ -31,5 +31,5 @@ COOLING_TEMP_CS = 5
 # ==== Control ===== #
 ######################
 MAX_ZVS_TEMP = 85 # Celsius
-MAX_ZVS_SUPPLY_TEMP = 85 # Celsius
+MAX_ZVS_PSU_TEMP = 85 # Celsius
 MAX_COOLANT_TEMP = 60 # Celsius
