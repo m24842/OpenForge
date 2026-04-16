@@ -14,12 +14,14 @@
 ## User Interface
 
 ### Components
-* Toggle switch
-* Rotary potentiometer 10kΩ (power dial)
-* Emergency stop button
-* 120V relay
-* Red LED
-* Green LED
+|Name|Suggested Part|
+|:---|-------------:|
+|Toggle switch|[Amazon link](https://a.co/d/08M4XrNV)|
+|Rotary potentiometer 10kΩ (power dial)|[Amazon link](https://a.co/d/00b6DRkQ)|
+|Emergency stop button|[Amazon link](https://a.co/d/0hutAWxC)|
+|120V relay|[Amazon link](https://a.co/d/00kgoHyW)|
+|Red LED|-|
+|Green LED|-|
 
 ### Functionality
 __Inputs__:
@@ -52,13 +54,16 @@ The furnace operation mode is displayed using __red and green LEDs__. Each LED i
 ## Heating
 
 ### Components
-* Induction coil
-* ZVS driver
-* 3kW DC power supply (ZVS power supply)
-* IC temperature sensor
-* Bottom pour crucible
-* Ceramic fiber insulation
-* Fiber glass coil sheath
+|Name|Suggested Part|
+|:---|-------------:|
+|ZVS driver|[Amazon link](https://a.co/d/0dc9iLwj)|
+|3kW DC power supply (ZVS power supply)|*included w/ ZVS driver|
+|Induction coil|*included w/ ZVS driver|
+|IC temperature sensor|[Digikey link](https://www.digikey.com/short/981h0vrd)|
+|Bottom pour crucible|[Amazon link](https://a.co/d/0bnduDAu) *hole must be drilled|
+|Bottom pour crucible plug|[Amazon link](https://a.co/d/034yB7Kj)|
+|Ceramic fiber insulation|[Amazon link](https://a.co/d/070G24vb)|
+|Fiber glass coil sheath|[Amazon link](https://a.co/d/0huBojl4)|
 
 ### Functionality
 __Inputs__:
@@ -81,14 +86,18 @@ Additionally, the __ZVS power supply__ supports CAN commands for reading operati
 ## Cooling
 
 ### Components
-* 12V fans
-* 12V pump
-* 12V relay
-* 12V power supply
-* Radiator
-* Thermocouple + amplifier
-* Tubing
-* Reservoir
+|Name|Suggested Part|
+|:---|-------------:|
+|12V fans|[Amazon link](https://a.co/d/06POpfxe)|
+|12V pump|*included w/ ZVS driver|
+|12V relay|[Amazon link](https://a.co/d/09bBEAkq)|
+|12V power supply|[Amazon link](https://a.co/d/0fyLhfdB)|
+|Radiator|[Amazon link](https://a.co/d/0c7LKzQl)|
+|Thermocouple + amplifier|[Amazon link](https://a.co/d/0a98Mzv3)|
+|Tubing|[Amazon link](https://a.co/d/06ERqqzK)|
+|Hose clamps|-|
+|Hose adapters|-|
+|Reservoir|-|
 
 ### Functionality
 __Inputs__:
@@ -106,9 +115,11 @@ The __water pump__ is always running to allow for accurate measurements of nomin
 ## Control
 
 ### Components
-* Microcontroller
-* CAN transceiver
-* Buck converter
+|Name|Suggested Part|
+|:---|-------------:|
+|Microcontroller (MCU)|[Adafruit link](https://www.adafruit.com/product/5724)|
+|CAN transceiver|*onboard the MCU|
+|Buck converter|[Amazon link](https://a.co/d/0ix6y9vt)|
 
 ### Functionality
 __Inputs__:
@@ -132,3 +143,12 @@ __Heating control__ involves setting the ZVS power supply current limit and outp
 __Cooling control__ involves enabling/disabling the fans for the electronics and coolant radiator. Fans are only enabled while heating is enabled or some temperature limit has been exceeded.
 
 Additionally, the system controller is responsible for updating the furnace state displayed by the [User Interface](#user-interface).
+
+## Miscellaneous
+
+### Components
+|Name|Suggested Part|
+|:---|-------------:|
+|Aluminum sheet||
+|Door hinges|-|
+|Mounting hardware|-|
