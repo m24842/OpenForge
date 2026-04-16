@@ -1,6 +1,11 @@
 # Architecture
 
 ## Overview
+
+<p align="center">
+  <img src="../../assets/system_block.svg" alt="OpenForge" width="90%">
+</p>
+
 * [User Interface](#user-interface)
 * [Heating](#heating)
 * [Cooling](#cooling)
