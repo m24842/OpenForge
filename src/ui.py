@@ -9,7 +9,8 @@ class UI:
     IDLE = const(0)
     RAMP = const(1)
     STEADY = const(2)
-    ERROR = const(3)
+    OVERLOAD = const(3)
+    ERROR = const(4)
     
     def __init__(
         self,
@@ -67,10 +68,16 @@ class UI:
         )
     
     def _flash_handler(self, t: Timer) -> None:
-        if self.status == self.STEADY:
-            if self._flash_counter == 0: self._green_led.on()
-            elif self._flash_counter == 1: self._green_led.off()
+        
+        def _flash(led: Pin) -> None:
+            if self._flash_counter == 0: led.on()
+            elif self._flash_counter == 1: led.off()
             self._flash_counter = (self._flash_counter + 1) % 3
+        
+        if self.status == self.STEADY:
+            _flash(self._green_led)
+        if self.status == self.OVERLOAD:
+            _flash(self._red_led)
     
     def set_status(self, status: int) -> None:
         self.status = status
@@ -82,6 +89,8 @@ class UI:
             self._red_led.off()
         elif status == self.STEADY:
             self._red_led.off()
+        elif status == self.OVERLOAD:
+            self._green_led.off()
         elif status == self.ERROR:
             self._green_led.off()
             self._red_led.on()

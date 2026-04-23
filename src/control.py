@@ -50,7 +50,8 @@ class SystemController:
                 prev_pct = pct
                 
                 if self._ui.enable_zvs:
-                    if self._zvs.steady: self._ui.set_status(UI.STEADY)
+                    if self._zvs.overload: self._ui.set_status(UI.OVERLOAD)
+                    elif self._zvs.steady: self._ui.set_status(UI.STEADY)
                     else: self._ui.set_status(UI.RAMP)
                     self._zvs.enable()
                     self._zvs.set_current_limit(pct)

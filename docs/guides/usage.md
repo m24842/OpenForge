@@ -19,8 +19,8 @@
 1. Disable heating using the [heating enable/disable switch](#heating-enabledisable-switch)
 2. Set the [temperature dial](#temperature-dial) to the lowest setting
 3. Wait until fans shut off to ensure critical components are protected from overheating
-3. Unplug in the heating power supply (i.e. the PSU for the ZVS driver)
-4. Unplug in the control power supply (i.e. the PSU for the MCU and cooling)
+4. Unplug in the heating power supply (i.e. the PSU for the ZVS driver)
+5. Unplug in the control power supply (i.e. the PSU for the MCU and cooling)
 
 ## Temperature Control
 
@@ -40,6 +40,8 @@
       * Furnace is enabled and temperature is __ramping__.
   3. Steady: ⚫️🟢 (green flashing)
       * Furnace is enabled and temperature is __steady__.
+  4. Overload: 🔴⚫️ (red flashing)
+      * Furnace power supply is __overloaded__ (temperature setting must be reduced).
   4. Error: 🔴⚫️ (red on)
       * Furnace has entered an erroneous state.
 
