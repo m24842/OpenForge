@@ -35,16 +35,16 @@ class ZVSController:
         miso_pin: int = CAN_SPI_MISO,
         cs_pin: int = CAN_CS,
     ):
+        self._cache_len = cache_len
         self._steady_thresh = steady_thresh
         self._state = {
             "enabled" : False,
-            "v_out": deque([0.0], cache_len),
-            "i_out": deque([0.0], cache_len),
+            "v_out": deque([0.01], cache_len),
+            "i_out": deque([0.01], cache_len),
             "i_lim": 0.0,
             "v_in": 0.0,
             "supply_temp": 0.0,
         }
-        self._prev_i_lim = 0.0
         
         assert 26 <= temp_pin <= 29, "Temp pin must be ADC-capable GPIO26-29"
         self._temp_pin = ADC(Pin(temp_pin))
@@ -90,9 +90,14 @@ class ZVSController:
     
     @property
     def overload(self) -> bool:
-        for i in self._state.get("i_out", [0.0]):
-            if i == 0.0: return True
-        return False
+        consecutive_nonzeros = 0
+        for i in self._state.get("i_out", []):
+            if i != 0.0: consecutive_nonzeros += 1
+            else: consecutive_nonzeros = 0
+            
+            # Overloading will only cause a single nonzero current reading
+            if consecutive_nonzeros >= 2: return False
+        return True
 
     @property
     def temp(self) -> float:
@@ -181,9 +186,6 @@ class ZVSController:
         return self._send_msg(self.DEFAULT_ID, data)
 
     def set_current_limit(self, pct: float) -> bool:
-        if pct != self._prev_i_lim:
-            self._state["i_out"].clear()
-        self._prev_i_lim = pct
         prange = (0.1, 1.21)
         translated_pct = pct * (prange[1] - prange[0]) + prange[0]
         b = self._float_to_bytearray(translated_pct)
