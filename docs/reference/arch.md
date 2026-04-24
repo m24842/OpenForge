@@ -48,7 +48,7 @@ The furnace operation mode is displayed using __red and green LEDs__. Each LED i
     * Furnace is enabled and temperature is __steady__.
     Steadiness is identified as a roughly constant voltage/current being drawn by the ZVS driver.
 4. Overload: 🔴⚫️ (red flashing)
-    * Furnace power supply is __overloaded__. The power supply will throttle power unless the temperature setting is reduced (throttling reduces effective power significantly).
+    * Furnace power supply is __overloaded__. The power supply will throttle power unless the temperature setting is reduced (throttling reduces effective power significantly). This generally only occurs when running the furnace on 240VAC.
 5. Error: 🔴⚫️ (red on)
     * Furnace has entered an erroneous state. The system controller monitors temperatures of critical components and disables heating if temperature limits are exceeded.
 
