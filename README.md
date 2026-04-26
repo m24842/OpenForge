@@ -21,3 +21,8 @@ for metal working and rapid prototyping.
   * [Configuration](docs/reference/configs.md)
 
 ## Demo Video
+<p align="center">
+  <a href="https://www.youtube.com/watch?v=29SxvKb8Hko">
+    <img src="assets/thumbnail.jpg" alt="OpenForge Demo" width="80%">
+  </a>
+</p>
