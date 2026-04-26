@@ -6,7 +6,7 @@
 
 ## Overview
 OpenForge is an open-source, low cost, hobbyist-level 
-induction furnace created to reduce the cost barrier of entry 
+induction furnace created to reduce the cost barrier to entry 
 for metal working and rapid prototyping.
 
 ## Documentation
