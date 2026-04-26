@@ -24,7 +24,7 @@
 
 ## Temperature Control
 
-<!-- TODO: add photo -->
+<img src="../../assets/control_panel.png" alt="Control Panel" width="30%">
 
 ### Temperature Dial:
   Crucible temperature can be adjusted down to 10% of the nominal temperature (see [Architecture](../reference/arch.md) for details). The nominal temperature of the crucible depends on the mains voltage level (i.e. 120VAC or 240VAC).
@@ -47,7 +47,7 @@
 
 ## Safety
 
-<!-- TODO: add photo -->
+<img src="../../assets/safety.png" alt="Control Panel" width="30%">
 
 ### Emergency Stop Button:
   In case of an emergency, power to the induction coil can be immediately terminated by pressing the e-stop button. Cooling will continue operating to protect critical system components.
