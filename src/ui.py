@@ -41,7 +41,7 @@ class UI:
         self._switch_state = False
         self._switch_timer = Timer(-1)
         self._switch = Pin(switch_pin, Pin.IN, Pin.PULL_UP)
-        self._switch.irq(trigger=Pin.IRQ_RISING | Pin.IRQ_FALLING, handler=self._switch_handler)
+        self._switch_timer.init(period=100, mode=Timer.PERIODIC, callback=self._switch_handler)
     
     @property
     def enable_zvs(self):
@@ -56,16 +56,8 @@ class UI:
     def _dial_handler(self, t: Timer) -> None:
         self._dial_value = self._dial_alpha * round(self._dial.read_u16() / 65535, 2) + (1 - self._dial_alpha) * self._dial_value
     
-    def _switch_handler(self, pin: Pin) -> None:
-        
-        def _debounce_handler(pin: Pin) -> None:
-            self._switch_state = not bool(pin.value())
-        
-        self._switch_timer.init(
-            period=50,
-            mode=Timer.ONE_SHOT,
-            callback=lambda t: _debounce_handler(pin)
-        )
+    def _switch_handler(self, t: Timer) -> None:
+        self._switch_state = not self._switch.value()
     
     def _flash_handler(self, t: Timer) -> None:
         

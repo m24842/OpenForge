@@ -90,6 +90,7 @@ class ZVSController:
     
     @property
     def overload(self) -> bool:
+        if not self._state["enabled"]: return False
         consecutive_nonzeros = 0
         for i in self._state.get("i_out", []):
             if i != 0.0: consecutive_nonzeros += 1
@@ -129,7 +130,7 @@ class ZVSController:
         res, msg = self._can.recv()
         return res == CanError.ERROR_OK, msg
     
-    def _get_properties(self) -> dict:
+    async def _get_properties(self) -> dict:
         pids = {
             0x01: "v_out",
             0x02: "i_out",
@@ -152,7 +153,7 @@ class ZVSController:
                     elif p == "i_lim": self._state[p] = pval
                     elif p == "supply_temp": self._state[p] = pval
                     elif p == "v_in": self._state[p] = pval
-                except: pass
+                except: await asyncio.sleep(0.05)
         return self._state
     
     async def start_update(self) -> None:
@@ -164,8 +165,8 @@ class ZVSController:
         """
         while True:
             await asyncio.sleep(1.0)
-            self._get_properties()
-            print("vout", self._state["v_out"][-1], "iout", self._state["i_out"][-1], "i_lim", self._state["i_lim"], "supply_temp", self._state["supply_temp"], "v_in", self._state["v_in"])
+            await self._get_properties()
+            # print("vout", self._state["v_out"][-1], "iout", self._state["i_out"][-1], "i_lim", self._state["i_lim"], "supply_temp", self._state["supply_temp"], "v_in", self._state["v_in"])
 
     def enable(self) -> bool:
         self._state["enabled"] = True

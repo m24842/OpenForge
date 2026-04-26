@@ -71,7 +71,7 @@ class SystemController:
         self._cooling_task = asyncio.create_task(self._cooling_operation()) # Manage cooling system
         self._heating_task = asyncio.create_task(self._heating_operation()) # Manage ZVS power
         while True:
-            await asyncio.sleep(0.1)
+            await asyncio.sleep(0.5)
             stop = any([
                 self._zvs.temp > self._max_zvs_temp, # ZVS over-temp
                 self._zvs.supply_temp > self._max_zvs_psu_temp, # ZVS supply over-temp
@@ -90,4 +90,4 @@ class SystemController:
     
     async def run(self) -> None:
         asyncio.create_task(self._monitored_operation())
-        while True: await asyncio.sleep(1)
+        while True: await asyncio.sleep(60)
