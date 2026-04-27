@@ -94,7 +94,7 @@ Additionally, the __ZVS power supply__ supports CAN commands for reading operati
 |12V pump|*included w/ ZVS driver|
 |12V relay|[Amazon link](https://a.co/d/09bBEAkq)|
 |12V power supply|[Amazon link](https://a.co/d/0fyLhfdB)|
-|Radiator|[Amazon link](https://www.amazon.com/transmission-cooler-kit-protection-performance/dp/B0F66S1S5W/ref=cm_cr_arp_d_product_top?ie=UTF8&th=1)|
+|Radiator|[Amazon link](https://a.co/d/0breF2rm)|
 |Thermocouple + amplifier|[Amazon link](https://a.co/d/0a98Mzv3)|
 |Tubing|[Amazon link](https://a.co/d/06ERqqzK)|
 |Hose clamps|-|
