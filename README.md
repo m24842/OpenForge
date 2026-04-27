@@ -37,4 +37,4 @@ for metal working and rapid prototyping.
 <!-- | <img src="https://github.com/.png" width="50em"/> | [@](https://github.com/) | -->
 
 ## Acknowledgments
-Special thanks to __Dr. Lukas Graber__ for his guidance and support throughout this project.
+Special thanks to __Dr. Lukas Graber__ and __Dr. Peter Hesketh__ for their guidance, insight, and support throughout this project.
