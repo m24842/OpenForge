@@ -22,7 +22,7 @@ for metal working and rapid prototyping.
 
 ## Demo Video
 <p align="center">
-  <a href="https://www.youtube.com/watch?v=29SxvKb8Hko">
+  <a href="https://www.youtube.com/watch?v=rfKfzx6W2i8">
     <img src="assets/thumbnail.jpg" alt="OpenForge Demo" width="80%">
   </a>
 </p>
