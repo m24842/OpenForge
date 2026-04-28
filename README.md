@@ -36,7 +36,7 @@ OpenForge is an open-source, low-cost, hobbyist-level induction furnace created 
 | <img src="https://github.com/Dmay37.png" width="50em"/> | [@Dmay37](https://github.com/Dmay37) | EE |
 | <img src="https://github.com/14joragu.png" width="50em"/> | [@14joragu](https://github.com/14joragu) | EE |
 | <img src="https://github.com/61olihar.png" width="50em"/> | [@61olihar](https://github.com/61olihar) | ME |
-<!-- | <img src="https://github.com/.png" width="50em"/> | [@](https://github.com/) | -->
+| <img src="https://github.gatech.edu/gchen368.png" width="50em"/> | [@gchen368](https://github.gatech.edu/gchen368) | CE |
 
 ## Acknowledgments
 Special thanks to __Dr. Lukas Graber__ and __Dr. Peter Hesketh__ for their guidance, insight, and support throughout this project.
