@@ -16,4 +16,4 @@
 
 ## Hardware
 1. Following the [design files](../../cad), fabricate and assemble components for the furnace enclosure. Feel free to modify the enclosure design to better fit your needs.
-2. Mount electrical hardware to the enclosure
+2. Mount electrical hardware to the enclosure.
